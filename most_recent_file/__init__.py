@@ -1,9 +1,11 @@
 import argparse
 import logging
 import enum
+from os import name
 from pathlib import Path
 from typing import Callable, List
 from functools import partial
+from most_recent_file.enum_action import enum_action
 
 logger = logging.getLogger(__name__)
 
@@ -12,16 +14,6 @@ class MostRecentMethod(enum.Enum):
     ACCESSED: Callable[[Path], float] = partial(lambda path: path.stat().st_atime)
     CREATED: Callable[[Path], float] = partial(lambda path: path.stat().st_ctime)
     MODIFIED: Callable[[Path], float] = partial(lambda path: path.stat().st_mtime)
-
-    @classmethod
-    def from_string(cls, s: str):
-        try:
-            return cls[s.upper()]
-        except KeyError:
-            raise ValueError(f"{s} is not a valid variant of {cls}")
-
-    def __str__(self) -> str:
-        return self.name.lower()
 
 
 def main():
@@ -46,12 +38,10 @@ def main():
     parser.add_argument(
         "-m",
         "--method",
-        choices=[variant.name.lower() for variant in MostRecentMethod],
         default=MostRecentMethod.MODIFIED,
-        type=MostRecentMethod.from_string,
-        help="How to determine the most recent file. (default: %(default)s)",
+        action=enum_action(MostRecentMethod),
+        help="How to determine the most recent file.",
     )
-
     parser.add_argument(
         "-l",
         "--log-level",
