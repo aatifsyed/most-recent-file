@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "most-recent-file"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+argcomplete = "^1.12.3"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.0"
+black = "^21.6b0"
+ipython = "^7.25.0"
+
+[tool.poetry.scripts]
+most-recent-file = 'most_recent_file:main'
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "info"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
