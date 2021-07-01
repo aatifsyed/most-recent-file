@@ -5,7 +5,7 @@ from typing import Any, Callable, Iterable, Optional, Sequence, Tuple, TypeVar, 
 E = TypeVar("E", bound=enum.Enum)
 
 
-def enum_action(e: E):
+def enum_action(enum_class: E):
     class EnumAction(argparse.Action):
         def __init__(
             self,
@@ -22,12 +22,13 @@ def enum_action(e: E):
                 ]
             ] = None,
             choices: Optional[Iterable[E]] = None,
-            required: bool = None,
+            required: bool = False,
             help: Optional[str] = None,
             metavar: Optional[Union[str, Tuple[str, ...]]] = None,
         ) -> None:
             if isinstance(default, enum.Enum) and help is not None:
                 help = f"{help} (default: {default.name.lower()})"
+            self.cls = enum_class
             super().__init__(
                 option_strings,
                 dest,
@@ -35,19 +36,21 @@ def enum_action(e: E):
                 const=const,
                 default=default,
                 type=type,
-                choices=[variant.name.lower() for variant in e],
+                choices=[variant.name.lower() for variant in enum_class],  # type: ignore
                 required=required,
                 help=help,
                 metavar=metavar,
             )
 
-        def __call__(
+        def __call__(  # type: ignore
             self,
             parser: argparse.ArgumentParser,
             namespace: argparse.Namespace,
-            values: Union[str, Sequence[Any], None],
-            option_string: Optional[str],
+            values: Union[str, Sequence[Any], None] = None,
+            option_string: Optional[str] = None,
         ) -> None:
-            setattr(namespace, self.dest, E[values.upper()])
+            if not isinstance(values, str):
+                raise TypeError
+            setattr(namespace, self.dest, getattr(self.cls, values.upper()))
 
     return EnumAction

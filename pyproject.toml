@@ -7,14 +7,17 @@ authors = ["Your Name <you@example.com>"]
 [tool.poetry.dependencies]
 python = "^3.9"
 argcomplete = "^1.12.3"
+GitPython = "^3.1.18"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.0"
 black = "^21.6b0"
 ipython = "^7.25.0"
+mypy = "^0.910"
+pylint = "^2.9.1"
 
 [tool.poetry.scripts]
-most-recent-file = 'most_recent_file:main'
+most-recent-file = 'most_recent_file:cli'
 
 [tool.pytest.ini_options]
 log_cli = true
