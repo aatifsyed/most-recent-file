@@ -10,6 +10,8 @@ argcomplete = "^1.12.3"
 GitPython = "^3.1.18"
 more-itertools = "^8.8.0"
 poetry-version = "^0.1.5"
+logging-actions = "^0.1.2"
+enum-actions = "^0.1.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.0"
@@ -21,7 +23,7 @@ ipykernel = "^6.0.0"
 hypothesis = "^6.14.0"
 
 [tool.poetry.scripts]
-# most-recent-file = 'most_recent_file:cli'
+most-recent-file = 'most_recent_file.cli:cli'
 
 [tool.pytest.ini_options]
 log_cli = true
