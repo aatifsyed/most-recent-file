@@ -59,7 +59,8 @@ def main(
     paths: List[Path],
     recurse: bool,
     method: MostRecentMethod,
-    include_hidden: bool,
+    include_hidden_files: bool,
+    include_hidden_folders: bool,
     do_special_git_processing: bool,
 ):
     logger.debug(f"Processing {len(paths)} top-level paths")
@@ -85,7 +86,7 @@ def main(
 
     processed_paths = filter(Path.is_file, processed_paths)
 
-    if not include_hidden:
+    if not include_hidden_files:
         processed_paths = filter(
             lambda path: not path.name.startswith("."), processed_paths
         )
@@ -127,14 +128,18 @@ def cli():
         help="How to determine the most recent file.",
     )
     parser.add_argument(
-        "-H",
-        "--include-hidden",
+        "--include-hidden-files",
         action=argparse.BooleanOptionalAction,
         default=False,
         help="Include hidden files in the search results.",
     )
     parser.add_argument(
-        "-I",
+        "--include-hidden-folders",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Recurse into hidden folders",
+    )
+    parser.add_argument(
         "--include-gitignored",
         action=argparse.BooleanOptionalAction,
         default=False,
@@ -155,7 +160,8 @@ def cli():
         paths=args.path,
         recurse=args.recurse,
         method=args.method,
-        include_hidden=args.include_hidden,
+        include_hidden_files=args.include_hidden_files,
+        include_hidden_folders=args.include_hidden_folders,
         do_special_git_processing=not args.include_gitignored,
     )
     print(output.as_posix())

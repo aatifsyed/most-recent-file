@@ -47,7 +47,8 @@ def test_picks_most_recently_modified_file(simple_folder: PreparedFolder):
         paths=paths,
         recurse=False,
         method=subject.MostRecentMethod.MODIFIED,
-        include_hidden=False,
+        include_hidden_files=False,
+        include_hidden_folders=False,
         do_special_git_processing=False,
     )
     assert output == expected
@@ -62,7 +63,8 @@ def test_picks_most_recently_modified_file_recursive(simple_folder: PreparedFold
         paths=[simple_folder.folder],
         recurse=True,
         method=subject.MostRecentMethod.MODIFIED,
-        include_hidden=False,
+        include_hidden_files=False,
+        include_hidden_folders=False,
         do_special_git_processing=False,
     )
     assert output == expected
@@ -87,7 +89,8 @@ def test_picks_most_recently_modified_file_git_aware(simple_folder: PreparedFold
         paths=paths,
         recurse=False,
         method=subject.MostRecentMethod.MODIFIED,
-        include_hidden=False,
+        include_hidden_files=False,
+        include_hidden_folders=False,
         do_special_git_processing=True,
     )
     assert output == expected
@@ -103,7 +106,8 @@ def test_picks_most_recently_modified_file_hidden(simple_folder: PreparedFolder)
         paths=paths,
         recurse=False,
         method=subject.MostRecentMethod.MODIFIED,
-        include_hidden=True,
+        include_hidden_files=True,
+        include_hidden_folders=False,
         do_special_git_processing=False,
     )
     assert output == hidden
@@ -123,7 +127,8 @@ def test_picks_most_recently_modified_file_not_hidden(simple_folder: PreparedFol
         paths=paths,
         recurse=False,
         method=subject.MostRecentMethod.MODIFIED,
-        include_hidden=False,
+        include_hidden_files=False,
+        include_hidden_folders=False,
         do_special_git_processing=False,
     )
     assert output == expected
@@ -142,7 +147,8 @@ def test_git_aware_ignore_dot_git_folder(simple_folder: PreparedFolder):
         paths=[simple_folder.folder],
         recurse=True,
         method=subject.MostRecentMethod.MODIFIED,
-        include_hidden=False,
+        include_hidden_files=False,
+        include_hidden_folders=False,
         do_special_git_processing=True,
     )
     assert output == expected
