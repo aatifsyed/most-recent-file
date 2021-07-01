@@ -1,5 +1,5 @@
 # `most-recent-file`
-Quickly set user.name and user.email for a repository, based on a config file. 
+Find the most recent.
 Available on [pypi](https://pypi.org/project/most-recent-file/).
 ## Installation
 Recommended installation is with [`pipx`](https://pypi.org/project/pipx):
