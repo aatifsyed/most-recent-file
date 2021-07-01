@@ -5,6 +5,8 @@ from typing import Iterable, Iterator
 import git
 from git import InvalidGitRepositoryError
 
+__all__ = ["is_hidden", "has_hidden_parent", "remove_gitignored", "get_candidates"]
+
 
 def is_hidden(path: Path) -> bool:
     return path.name.startswith(".")
