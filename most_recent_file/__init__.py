@@ -2,16 +2,17 @@ import argparse
 import dataclasses
 import enum
 import logging
-from itertools import chain
 from functools import partial
+from itertools import chain
 from pathlib import Path
 from typing import Callable, List
 
+import argcomplete
 import git
 
 from most_recent_file.enum_action import enum_action
-from most_recent_file.logging_action import LoggingAction
-from most_recent_file.utils import filter_out, with_children
+from most_recent_file.logging_action import log_level_action
+from most_recent_file.utils import debug_iterable_length, filter_out, with_children
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class MostRecentMethod(enum.Enum):
 
 def in_repo(path: Path):
     try:
-        repo = git.Repo(path, search_parent_directories=True)
+        git.Repo(path, search_parent_directories=True)
         return True
     except git.InvalidGitRepositoryError:
         return False
@@ -47,7 +48,10 @@ class GitPath:
             paths = set(with_children(self.path))
         else:
             paths = {self.path}
-        ignored = set(self.repo.ignored(*paths))
+        ignored = set(map(Path, self.repo.ignored(*paths)))
+        logger.debug(
+            f"{len(paths - ignored)}/{len(paths)} under {self.path} are git included"
+        )
         return paths - ignored
 
 
@@ -61,28 +65,39 @@ def main(
     logger.debug(f"Processing {len(paths)} top-level paths")
 
     if do_special_git_processing:
-        gitpaths = list(map(GitPath.from_path, filter_out(in_repo, paths)))
-        logger.debug(f"{len(gitpaths)} of which are in a git repository")
-        git_processed_paths = chain.from_iterable(
+        gitpaths = map(GitPath.from_path, filter_out(in_repo, paths))
+        gitpaths = debug_iterable_length(
+            logger=logger,
+            format_string="{length} of which are in a git repository",
+            iterable=gitpaths,
+        )
+        gitpaths = chain.from_iterable(
             map(partial(GitPath.git_included, recurse=recurse), gitpaths)
         )
 
+    processed_paths = iter(paths)
+
     if recurse:
-        paths = map(with_children, paths)
+        processed_paths = chain.from_iterable(map(with_children, processed_paths))
 
-    if include_hidden:
-        paths = filter(lambda path: not path.name.startswith("."), paths)
+    if do_special_git_processing:
+        processed_paths = chain(processed_paths, gitpaths)
 
-    paths = list(filter(Path.is_file, paths))
+    processed_paths = filter(Path.is_file, processed_paths)
 
-    if len(paths) == 0:
+    if not include_hidden:
+        processed_paths = filter(
+            lambda path: not path.name.startswith("."), processed_paths
+        )
+
+    candidate_paths = list(processed_paths)
+
+    if len(candidate_paths) == 0:
         raise RuntimeError("No files to sort")
 
-    paths.sort(key=method.value)
+    candidate_paths.sort(key=method.value)
 
-    string = paths[-1].as_posix()
-
-    print(string)
+    return candidate_paths[-1]
 
 
 def cli():
@@ -125,14 +140,22 @@ def cli():
         default=False,
         help="Include gitignored files in the search results.",
     )
-    parser.add_argument("-l", "--log-level", action=LoggingAction, default="info")
+    parser.add_argument(
+        "-l",
+        "--log-level",
+        action=log_level_action(logger),
+        default="info",
+    )
+    argcomplete.autocomplete(parser)
     args = parser.parse_args()
-    logger.debug(args)
+    logger.addHandler(hdlr=logging.StreamHandler())
+    logger.debug(f"{args=}")
 
-    main(
+    output = main(
         paths=args.path,
         recurse=args.recurse,
         method=args.method,
         include_hidden=args.include_hidden,
         do_special_git_processing=not args.include_gitignored,
     )
+    print(output.as_posix())

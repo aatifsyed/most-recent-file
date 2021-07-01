@@ -4,6 +4,8 @@ from typing import Any, Callable, Iterable, Optional, Sequence, Tuple, TypeVar, 
 
 E = TypeVar("E", bound=enum.Enum)
 
+__all__ = ["enum_action"]
+
 
 def enum_action(enum_class: E):
     class EnumAction(argparse.Action):

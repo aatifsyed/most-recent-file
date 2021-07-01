@@ -1,13 +1,14 @@
 [tool.poetry]
 name = "most-recent-file"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "Print out the most recent file from the given paths"
+authors = ["Aatif Syed <aatifsyedyp@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
 argcomplete = "^1.12.3"
 GitPython = "^3.1.18"
+more-itertools = "^8.8.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.0"
@@ -15,6 +16,8 @@ black = "^21.6b0"
 ipython = "^7.25.0"
 mypy = "^0.910"
 pylint = "^2.9.1"
+ipykernel = "^6.0.0"
+hypothesis = "^6.14.0"
 
 [tool.poetry.scripts]
 most-recent-file = 'most_recent_file:cli'
