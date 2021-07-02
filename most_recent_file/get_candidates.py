@@ -1,9 +1,15 @@
-from itertools import tee
+from itertools import chain, tee
+from most_recent_file.utils import split_accumulator_before
 from pathlib import Path
 from typing import Iterable, Iterator
+import subprocess
+import logging
+
 
 import git
 from git import InvalidGitRepositoryError
+
+logger = logging.getLogger(__name__)
 
 __all__ = ["is_hidden", "has_hidden_parent", "remove_gitignored", "get_candidates"]
 
@@ -21,6 +27,27 @@ def has_hidden_parent(path: Path, /, relative_to: Path) -> bool:
     )
 
 
+def gitignored(repo: git.Repo, paths: Iterable[Path]) -> Iterable[Path]:
+    # GitPython will call subprocess, which calls exec, which has an argument length limit.
+    # On large repos, we will hit ERR2BIG with our files, so anticipate this
+    ARG_MAX = int(
+        subprocess.run(
+            ["getconf", "ARG_MAX"], capture_output=True, check=True, text=True
+        ).stdout
+    )
+
+    logger.debug(f"{ARG_MAX=}")
+
+    arguments = split_accumulator_before(
+        iterable=paths,
+        predicate=lambda lis: len(" ".join(str(p) for p in lis)) >= ARG_MAX,
+    )
+
+    ignoreds = map(lambda args: repo.ignored(*args), arguments)
+
+    return map(Path, chain.from_iterable(ignoreds))
+
+
 def remove_gitignored(paths: Iterator[Path], /, root: Path) -> Iterator[Path]:
     try:
         repo = git.Repo(path=root, search_parent_directories=True)
@@ -32,7 +59,7 @@ def remove_gitignored(paths: Iterator[Path], /, root: Path) -> Iterator[Path]:
 
     p0, p1 = tee(paths)
 
-    ignored = set(map(Path, repo.ignored(*p0)))
+    ignored = set(gitignored(repo=repo, paths=p0))
 
     return filter(lambda path: path not in ignored, p1)
 

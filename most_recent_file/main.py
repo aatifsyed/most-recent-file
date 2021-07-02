@@ -1,14 +1,12 @@
-from pathlib import Path
-from typing import Any, Callable, List, TypeVar, Protocol
 from itertools import chain
+from pathlib import Path
+from typing import Callable, List, TypeVar
+
+from _typeshed import SupportsLessThan
+
 from most_recent_file.get_candidates import get_candidates
 
 __all__ = ["main"]
-
-
-class SupportsLessThan(Protocol):
-    def __lt__(self, __other: Any) -> bool:
-        ...
 
 
 T = TypeVar("T", bound=SupportsLessThan)
