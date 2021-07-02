@@ -1,15 +1,18 @@
 from itertools import chain
 from pathlib import Path
-from typing import Callable, List, TypeVar
-
-from _typeshed import SupportsLessThan
+from typing import Callable, List, TypeVar, TYPE_CHECKING
 
 from most_recent_file.get_candidates import get_candidates
 
+if TYPE_CHECKING:
+    from _typeshed import SupportsLessThan
+
+    T = TypeVar("T", bound=SupportsLessThan)
+else:
+    T = TypeVar("T")
+
+
 __all__ = ["main"]
-
-
-T = TypeVar("T", bound=SupportsLessThan)
 
 
 def main(

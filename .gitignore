@@ -1,2 +1,8 @@
-/dist
+# Python
 __pycache__
+
+# Poetry
+/dist
+
+# Pytest
+/pytest.log

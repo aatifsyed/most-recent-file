@@ -1,6 +1,6 @@
 from typing import Callable, Iterable, List, TypeVar
 from itertools import chain
-import logging
+from most_recent_file import logger
 
 __all__ = ["split_accumulator_before"]
 
@@ -15,9 +15,11 @@ def split_accumulator_before(
     current: List[T] = []
 
     while True:
+        logger.debug(f"{len(current)=}")
         try:
             t = next(iterator)
             if predicate(list(chain(current, [t]))):
+                logger.debug(f"yield list of {len(current)}")
                 yield current
                 current = []
             current.append(t)

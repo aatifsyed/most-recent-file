@@ -40,7 +40,7 @@ def gitignored(repo: git.Repo, paths: Iterable[Path]) -> Iterable[Path]:
 
     arguments = split_accumulator_before(
         iterable=paths,
-        predicate=lambda lis: len(" ".join(str(p) for p in lis)) >= ARG_MAX,
+        predicate=lambda lis: len(" ".join(str(p) for p in lis)) >= int(ARG_MAX * 0.8),
     )
 
     ignoreds = map(lambda args: repo.ignored(*args), arguments)
