@@ -45,5 +45,5 @@ def test_argument_list_too_long(tmp_path: Path):
 
     for i in range(50_000):
         tmp_path.joinpath(f"file{i}").touch()
-    logger.info("Done creating paths")
+
     subject.remove_gitignored(iter(tmp_path.rglob("*")), root=tmp_path)

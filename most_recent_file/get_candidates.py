@@ -1,8 +1,7 @@
-from itertools import chain, tee
-from most_recent_file.utils import split_accumulator_before
+from itertools import chain, starmap, tee
 from pathlib import Path
 from typing import Iterable, Iterator
-import subprocess
+from more_itertools import chunked
 import logging
 
 
@@ -29,23 +28,12 @@ def has_hidden_parent(path: Path, /, relative_to: Path) -> bool:
 
 def gitignored(repo: git.Repo, paths: Iterable[Path]) -> Iterable[Path]:
     # GitPython will call subprocess, which calls exec, which has an argument length limit.
-    # On large repos, we will hit ERR2BIG with our files, so anticipate this
-    ARG_MAX = int(
-        subprocess.run(
-            ["getconf", "ARG_MAX"], capture_output=True, check=True, text=True
-        ).stdout
+    # On large repos, we will hit ERR2BIG with our files, so workaround this
+    CHUNK_SIZE = 1000
+
+    return starmap(
+        Path, map(lambda args: repo.ignored(*args), chunked(paths, n=CHUNK_SIZE))
     )
-
-    logger.debug(f"{ARG_MAX=}")
-
-    arguments = split_accumulator_before(
-        iterable=paths,
-        predicate=lambda lis: len(" ".join(str(p) for p in lis)) >= int(ARG_MAX * 0.8),
-    )
-
-    ignoreds = map(lambda args: repo.ignored(*args), arguments)
-
-    return map(Path, chain.from_iterable(ignoreds))
 
 
 def remove_gitignored(paths: Iterator[Path], /, root: Path) -> Iterator[Path]:

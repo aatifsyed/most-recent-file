@@ -21,6 +21,7 @@ mypy = "^0.910"
 pylint = "^2.9.1"
 ipykernel = "^6.0.0"
 hypothesis = "^6.14.0"
+pytest-profiling = "^1.7.0"
 
 [tool.poetry.scripts]
 most-recent-file = 'most_recent_file.cli:cli'
