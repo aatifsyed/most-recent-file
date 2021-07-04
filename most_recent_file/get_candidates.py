@@ -1,11 +1,14 @@
 import logging
 import multiprocessing
 from functools import partial
-from itertools import chain, starmap, tee
+from itertools import chain, tee
 from pathlib import Path
+from sys import stderr
+from tempfile import SpooledTemporaryFile
 from typing import Iterable, Iterator, TypeVar
 
 import git
+import subprocess
 from git import InvalidGitRepositoryError
 from more_itertools import chunked
 
@@ -16,12 +19,13 @@ __all__ = ["is_hidden", "has_hidden_parent", "remove_gitignored", "get_candidate
 T = TypeVar("T")
 
 
-def debug_length(iterable: Iterable[T], format: str) -> Iterable[T]:
+def debug_length(iterable: Iterator[T], format: str) -> Iterator[T]:
     if logger.isEnabledFor(logging.DEBUG):
         lis = list(iterable)
         logger.debug(format.format(length=len(lis)))
         return iter(lis)
-    return iterable
+    else:
+        return iterable
 
 
 def is_hidden(path: Path) -> bool:
@@ -37,19 +41,24 @@ def has_hidden_parent(path: Path, /, relative_to: Path) -> bool:
     )
 
 
-def ignored(repo: git.Repo, *paths: Path) -> Iterable[Path]:
-    # Can't pickle lambdas, but can pickle top-level functions and then partial them
-    return map(Path, repo.ignored(*paths))
-
-
 def gitignored(repo: git.Repo, paths: Iterable[Path]) -> Iterable[Path]:
-    # GitPython will call subprocess, which calls exec, which has an argument length limit.
+    # git.Repo.ignored will call subprocess, which calls exec, which has an argument length limit.
     # On large repos, we will hit ERR2BIG with our files, so workaround this
-    CHUNK_SIZE = 100
-    with multiprocessing.Pool() as pool:
-        i = pool.starmap(partial(ignored, repo), chunked(paths, CHUNK_SIZE))
 
-    return chain.from_iterable(i)
+    process = subprocess.Popen(
+        ["git", "check-ignore", "--stdin"],
+        text=True,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=repo.working_tree_dir,
+    )
+
+    stdin = "\n".join(str(path) for path in paths)
+    stdout, stderr = process.communicate(input=stdin)
+    process.wait()
+
+    return map(Path, stdout.splitlines())
 
 
 def remove_gitignored(paths: Iterator[Path], /, root: Path) -> Iterator[Path]:
